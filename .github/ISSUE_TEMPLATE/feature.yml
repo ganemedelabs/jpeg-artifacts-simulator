@@ -1,0 +1,40 @@
+name: ✨ Feature Request
+description: Request a feature or enhancement for CiteEase.
+
+body:
+    - type: textarea
+      id: description
+      validations:
+          required: true
+      attributes:
+          label: Feature Description
+          description: |
+              Please describe the feature you are requesting in detail. Include why the feature is needed and how it could be used. If possible, provide example code, screenshots, or use cases to help explain the feature.
+          placeholder: |
+              Feature: Add support for '...'.
+              Why it's needed: This feature is important because '...'.
+              Example code, screenshots, or other materials that describe the feature.
+
+    - type: textarea
+      id: use_case
+      validations:
+          required: true
+      attributes:
+          label: Use Case
+          description: |
+              Describe a specific use case where this feature would be helpful. This helps us understand how this feature will benefit users.
+          placeholder: |
+              Example: "This feature would help us in situations where ... because ...".
+
+    - type: dropdown
+      id: priority
+      validations:
+          required: false
+      attributes:
+          label: Priority
+          description: How important is this feature request to you or your team?
+          options:
+              - Low
+              - Medium
+              - High
+              - Critical

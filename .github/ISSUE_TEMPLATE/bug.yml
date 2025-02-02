@@ -1,0 +1,103 @@
+name: 🐛 Bug Report
+description: Report an issue or bug with the project
+
+body:
+    - type: textarea
+      id: description
+      validations:
+          required: true
+      attributes:
+          label: Issue Description
+          description: |
+              Please provide a clear and concise description of the issue:
+              - What is the issue or bug you are encountering?
+              - What behavior did you expect?
+              - What did you observe instead?
+          placeholder: |
+              The application crashes when trying to upload a file. I expected the file to upload successfully, but instead I received an error message.
+
+    - type: markdown
+      attributes:
+          value: "## Steps to Reproduce"
+
+    - type: textarea
+      id: reproduction
+      validations:
+          required: true
+      attributes:
+          label: Steps to Reproduce
+          description: |
+              Please provide detailed steps to reproduce the issue. This helps us understand how to reproduce the problem:
+              1. Step 1: Describe the first action.
+              2. Step 2: Describe the second action.
+              3. Step 3: Describe the subsequent actions that lead to the issue.
+          placeholder: |
+              1. Navigate to the upload page.
+              2. Select a file to upload.
+              3. Click the 'Upload' button.
+              4. The error occurs when the file fails to upload.
+
+    - type: textarea
+      id: expected_behavior
+      validations:
+          required: true
+      attributes:
+          label: Expected Behavior
+          description: |
+              Describe what you expected to happen. 
+              What should have occurred instead of the observed behavior?
+          placeholder: |
+              The file should upload successfully without any errors.
+
+    - type: textarea
+      id: actual_behavior
+      validations:
+          required: true
+      attributes:
+          label: Actual Behavior
+          description: |
+              Describe what actually happened. Include any differences from the expected behavior.
+          placeholder: |
+              The file upload fails with an error message saying 'File format not supported'.
+
+    - type: textarea
+      id: screenshots
+      validations:
+          required: false
+      attributes:
+          label: Screenshots or Logs
+          description: |
+              If applicable, please include screenshots or logs that can help illustrate the problem.
+          placeholder: |
+              Error message log: 
+              [Include any screenshots or logs here]
+
+    - type: textarea
+      id: environment
+      validations:
+          required: true
+      attributes:
+          label: Environment
+          description: |
+              Provide details about your environment:
+              - Operating System (e.g., Windows 10, macOS Monterey)
+              - Browser and Version (if applicable)
+              - Version of CiteEase (if applicable)
+          placeholder: |
+              Operating System: macOS Monterey
+              Browser: Chrome 103.0.5060.53
+              Version of CiteEase: 2.3.1
+
+    - type: textarea
+      id: additional_information
+      validations:
+          required: false
+      attributes:
+          label: Additional Information
+          description: |
+              Include any other relevant information. For example:
+              - Have you tried any troubleshooting steps? If so, describe them.
+              - Are there any related issues or PRs? If so, provide links.
+          placeholder: |
+              I have tried clearing the browser cache and updating to the latest version of the tool, but the issue persists.
+              Related issue: #123

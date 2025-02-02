@@ -1,0 +1,59 @@
+# Since this repository belongs to a GitHub organization and Vercel doesn't provide free deployment for repository owned by organizations,
+# you can deploy manually on every push or, as configured here, only when the version in package.json changes.
+# To manually deploy:
+# 1. Install the Vercel CLI: `npm i -g vercel`
+# 2. Run `vercel` and follow the prompts to set up the project. When asked for a deployment scope, select your personal account.
+# 3. After setup, the CLI creates a `.vercel/project.json` file containing your `orgId` and `projectId`.
+# 4. Generate a Vercel Account Token at https://vercel.com/account/tokens.
+# 5. Add the following secrets to your repository: `ORG_ID`, `PROJECT_ID`, and `VERCEL_TOKEN`.
+
+name: Vercel Deployment Workflow
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    build_and_deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            # Check if the version field in package.json has changed
+            - name: Check version change
+              id: version_check
+              run: |
+                  if git diff HEAD~1 HEAD -- package.json | grep -E '"version":'; then
+                    echo "version_changed=true" >> $GITHUB_ENV
+                  else
+                    echo "version_changed=false" >> $GITHUB_ENV
+                  fi
+
+            # Exit early if no version change
+            - name: Exit if no version change
+              if: env.version_changed == 'false'
+              run: echo "No version change detected. Skipping deployment." && exit 0
+
+            # Vercel deployment action
+            - name: Deploy to Vercel
+              if: env.version_changed == 'true'
+              uses: amondnet/vercel-action@v20
+              id: vercel-deploy
+              with:
+                  vercel-token: ${{ secrets.VERCEL_TOKEN }}
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  vercel-args: ${{ github.event_name == 'push' && '--prod' || '' }}
+                  vercel-org-id: ${{ secrets.ORG_ID }}
+                  vercel-project-id: ${{ secrets.PROJECT_ID }}
+
+            # Output the preview URL for pull requests
+            - name: Preview URL
+              if: ${{ github.event_name == 'pull_request' }}
+              run: |
+                  echo "Preview URL: ${{ steps.vercel-deploy.outputs.preview-url }}"
