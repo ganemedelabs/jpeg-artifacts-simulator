@@ -65,3 +65,21 @@ registerRoute(
         ],
     })
 );
+
+// Cache font requests using a 'Cache First' strategy
+// This serves fonts from the cache and updates only when necessary
+registerRoute(
+    ({ request }) => request.destination === "font",
+    new CacheFirst({
+        cacheName: "fonts",
+        plugins: [
+            new CacheableResponsePlugin({
+                statuses: [200], // Only cache successful responses
+            }),
+            new ExpirationPlugin({
+                maxEntries: 20, // Limit the number of cached fonts
+                maxAgeSeconds: 60 * 60 * 24 * 365, // Cache for 1 year
+            }),
+        ],
+    })
+);
