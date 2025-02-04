@@ -41,4 +41,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## 📧 Contact
 
-For inquiries or more information, you can reach out to us at [ganymedelabs@gmail.com](mailto:ganemedelabs@gmail.com).
+For inquiries or more information, you can reach out to us at [ganemedelabs@gmail.com](mailto:ganemedelabs@gmail.com).
