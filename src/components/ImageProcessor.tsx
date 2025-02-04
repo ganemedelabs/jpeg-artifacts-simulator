@@ -3,11 +3,12 @@
 import { simulateJPEGCompression } from "@/utils/utils";
 import NextImage from "next/image";
 import { ChangeEvent, useRef, useState } from "react";
+import FileInput from "./FileInput";
+import TitleBar from "./TitleBar";
 
 export default function ImageProcessor() {
     const originalCanvasRef = useRef<HTMLCanvasElement>(null);
     const processedCanvasRef = useRef<HTMLCanvasElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const [quality, setQuality] = useState<number>(30);
     const [imageUploaded, setImageUploaded] = useState(false);
     const [imageProcessed, setImageProcessed] = useState(false);
@@ -23,18 +24,6 @@ export default function ImageProcessor() {
         link.href = canvas.toDataURL("image/jpeg");
         link.download = `${fileName || "processed"}.jpg`;
         link.click();
-    }
-
-    function handleCopy() {
-        const canvas = processedCanvasRef.current;
-        if (!canvas || !imageProcessed) return;
-
-        canvas.toBlob((blob) => {
-            if (!blob) return;
-
-            const item = new ClipboardItem({ "image/jpeg": blob });
-            navigator.clipboard.write([item]);
-        });
     }
 
     function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -95,29 +84,13 @@ export default function ImageProcessor() {
     }
 
     return (
-        <div className="mx-auto max-w-6xl p-5">
+        <>
             {/* Image Import Section */}
             <section className="mb-6">
                 <label htmlFor="fileInput" className="mb-2 block text-sm">
                     Import Image:
                 </label>
-                <div className="flex items-center">
-                    <button
-                        type="button"
-                        className="mr-4 block w-fit px-4 py-2"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        Choose File
-                    </button>
-                    <input
-                        ref={fileInputRef}
-                        id="fileInput"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="file:hidden"
-                    />
-                </div>
+                <FileInput onChange={handleImageUpload} />
             </section>
 
             {/* Quality Slider Section */}
@@ -168,15 +141,7 @@ export default function ImageProcessor() {
             <section className="grid gap-8 md:grid-cols-2">
                 {/* Original Image */}
                 <div className="window">
-                    <div className="title-bar">
-                        <h2 className="title-bar-text text-sm font-light">Original Image</h2>
-                        <div className="title-bar-controls">
-                            {/* Decorative buttons */}
-                            <button type="button" aria-label="Minimize" tabIndex={-1} />
-                            <button type="button" aria-label="Maximize" tabIndex={-1} />
-                            <button type="button" aria-label="Close" tabIndex={-1} />
-                        </div>
-                    </div>
+                    <TitleBar title="Original Image" />
 
                     <canvas
                         ref={originalCanvasRef}
@@ -194,15 +159,7 @@ export default function ImageProcessor() {
 
                 {/* Processed Image */}
                 <div className="window">
-                    <div className="title-bar">
-                        <h2 className="title-bar-text text-sm font-light">Processed Image</h2>
-                        <div className="title-bar-controls">
-                            {/* Decorative buttons */}
-                            <button type="button" aria-label="Minimize" tabIndex={-1} />
-                            <button type="button" aria-label="Maximize" tabIndex={-1} />
-                            <button type="button" aria-label="Close" tabIndex={-1} />
-                        </div>
-                    </div>
+                    <TitleBar title="Processed Image" />
 
                     <canvas
                         ref={processedCanvasRef}
@@ -213,14 +170,9 @@ export default function ImageProcessor() {
 
                     {imageProcessed ? (
                         <div>
-                            <div className="flex justify-between">
-                                <button type="button" className="w-full px-4 py-2" onClick={handleDownload}>
-                                    Download Image
-                                </button>
-                                <button type="button" className="w-full px-4 py-2" onClick={handleCopy}>
-                                    Copy Image
-                                </button>
-                            </div>
+                            <button type="button" className="w-full px-4 py-2" onClick={handleDownload}>
+                                Download Image
+                            </button>
                         </div>
                     ) : (
                         <div className="flex h-48 w-full items-center justify-center">
@@ -229,14 +181,6 @@ export default function ImageProcessor() {
                     )}
                 </div>
             </section>
-
-            <small className="mt-4 block text-xs">
-                This project is open source under the MIT License.{" "}
-                <a href="https://github.com/ganemedelabs/artifacts" className="underline">
-                    View on GitHub
-                </a>
-                .
-            </small>
-        </div>
+        </>
     );
 }
