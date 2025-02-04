@@ -28,6 +28,7 @@ export default function RootLayout({
     return (
         <html className="h-full" lang="en">
             <head>
+                {/* eslint-disable-next-line @next/next/no-css-tags */}
                 <link rel="stylesheet" href="/98.css" />
             </head>
             <ConfigProvider>
