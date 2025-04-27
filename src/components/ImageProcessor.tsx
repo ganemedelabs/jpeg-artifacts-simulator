@@ -1,6 +1,6 @@
 "use client";
 
-import { simulateJPEGCompression } from "@/utils/utils";
+import { ImageData as RustImageData, compress_jpeg } from "compress-jpeg";
 import NextImage from "next/image";
 import { ChangeEvent, useRef, useState } from "react";
 import FileInput from "./FileInput";
@@ -12,8 +12,7 @@ export default function ImageProcessor() {
     const [quality, setQuality] = useState<number>(30);
     const [imageUploaded, setImageUploaded] = useState(false);
     const [imageProcessed, setImageProcessed] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [isProcessing, setIsProcessing] = useState(false);
+    // const [isProcessing, setIsProcessing] = useState(false);
     const [fileName, setFileName] = useState<string | null>(null);
 
     function handleDownload() {
@@ -54,8 +53,7 @@ export default function ImageProcessor() {
     }
 
     async function handleGenerate() {
-        setIsProcessing(true);
-        setProgress(0);
+        // setIsProcessing(true);
 
         const canvas = originalCanvasRef.current;
         if (!canvas) return;
@@ -64,9 +62,22 @@ export default function ImageProcessor() {
 
         try {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const processedData = await simulateJPEGCompression(imageData, quality, (progress) =>
-                setProgress(progress)
+            const rustImageData = new RustImageData(
+                imageData.width,
+                imageData.height,
+                new Uint8ClampedArray(imageData.data)
             );
+
+            const processedData = compress_jpeg(rustImageData, quality);
+
+            const browserImageData = new ImageData(
+                processedData.data(),
+                processedData.width(),
+                processedData.height(),
+                { colorSpace: "srgb" }
+            );
+
+            processedData.free();
 
             const outCanvas = processedCanvasRef.current;
             if (!outCanvas) return;
@@ -74,12 +85,13 @@ export default function ImageProcessor() {
             outCanvas.height = canvas.height;
             const outCtx = outCanvas.getContext("2d");
             if (outCtx) {
-                outCtx.putImageData(processedData, 0, 0);
+                outCtx.putImageData(browserImageData, 0, 0);
             }
+        } catch (err) {
+            console.error("Error processing image:", err);
         } finally {
-            setIsProcessing(false);
+            // setIsProcessing(false);
             setImageProcessed(true);
-            setProgress(100);
         }
     }
 
@@ -111,7 +123,7 @@ export default function ImageProcessor() {
 
             {/* Processing / Generate Section */}
             <section className="mb-6">
-                {isProcessing ? (
+                {/* {isProcessing ? (
                     <div
                         id="progress"
                         className="box-border h-8 w-full appearance-none overflow-hidden rounded-none border-none bg-[#c0c0c0] p-1 shadow-[inset_-1px_-1px_#ffffff,_inset_1px_1px_#808080,_inset_-2px_-2px_#dfdfdf,_inset_2px_2px_#0a0a0a]"
@@ -123,17 +135,17 @@ export default function ImageProcessor() {
                             }}
                         />
                     </div>
-                ) : (
-                    <button
-                        type="button"
-                        disabled={!imageUploaded}
-                        onClick={handleGenerate}
-                        className="w-full px-6 py-2 sm:w-auto"
-                        aria-disabled={!imageUploaded}
-                    >
-                        Generate Image
-                    </button>
-                )}
+                ) : ( */}
+                <button
+                    type="button"
+                    disabled={!imageUploaded}
+                    onClick={handleGenerate}
+                    className="w-full px-6 py-2 sm:w-auto"
+                    aria-disabled={!imageUploaded}
+                >
+                    Generate Image
+                </button>
+                {/* )} */}
                 <small className="m-2 block text-xs">All processing is done client-side.</small>
             </section>
 
