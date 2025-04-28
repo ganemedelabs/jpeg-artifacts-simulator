@@ -1,6 +1,6 @@
 {
     "name": "jpeg-artifacts-simulator",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "private": true,
     "scripts": {
         "dev": "next dev --turbopack",
@@ -39,6 +39,6 @@
         "typescript": "^5"
     },
     "dependencies": {
-        "compress-jpeg": "^1.0.2"
+        "compress-jpeg": "^1.0.3"
     }
 }
