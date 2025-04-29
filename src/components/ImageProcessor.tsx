@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageData as RustImageData, compress_jpeg } from "compress-jpeg";
+import init, { ImageData as RustImageData, compress_jpeg } from "compress-jpeg";
 import NextImage from "next/image";
 import { ChangeEvent, useRef, useState } from "react";
 import FileInput from "./FileInput";
@@ -12,7 +12,7 @@ export default function ImageProcessor() {
     const [quality, setQuality] = useState<number>(30);
     const [imageUploaded, setImageUploaded] = useState(false);
     const [imageProcessed, setImageProcessed] = useState(false);
-    // const [isProcessing, setIsProcessing] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     const [fileName, setFileName] = useState<string | null>(null);
 
     function handleDownload() {
@@ -53,12 +53,22 @@ export default function ImageProcessor() {
     }
 
     async function handleGenerate() {
-        // setIsProcessing(true);
+        setIsProcessing(true);
 
         const canvas = originalCanvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
+
+        try {
+            await init("/compress_jpeg_bg.wasm");
+        } catch {
+            try {
+                await init("./compress_jpeg_bg.wasm");
+            } catch {
+                await init();
+            }
+        }
 
         try {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -90,7 +100,7 @@ export default function ImageProcessor() {
         } catch (err) {
             console.error("Error processing image:", err);
         } finally {
-            // setIsProcessing(false);
+            setIsProcessing(false);
             setImageProcessed(true);
         }
     }
@@ -143,7 +153,7 @@ export default function ImageProcessor() {
                     className="w-full px-6 py-2 sm:w-auto"
                     aria-disabled={!imageUploaded}
                 >
-                    Generate Image
+                    {isProcessing ? "Generating Image..." : "Generate Image"}
                 </button>
                 {/* )} */}
                 <small className="m-2 block text-xs">All processing is done client-side.</small>
