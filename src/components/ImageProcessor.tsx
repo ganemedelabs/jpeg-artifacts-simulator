@@ -53,6 +53,14 @@ export default function ImageProcessor() {
     }
 
     async function handleGenerate() {
+        const processedCanvas = processedCanvasRef.current;
+        if (processedCanvas) {
+            processedCanvas.width = 0;
+            processedCanvas.height = 0;
+        }
+
+        setImageProcessed(false);
+        await new Promise((resolve) => setTimeout(resolve, 0));
         setIsProcessing(true);
 
         const canvas = originalCanvasRef.current;
