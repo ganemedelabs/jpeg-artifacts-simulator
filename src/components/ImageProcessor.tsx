@@ -14,6 +14,18 @@ export default function ImageProcessor() {
     const [imageProcessed, setImageProcessed] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [fileName, setFileName] = useState<string | null>(null);
+    const [lastQuality, setLastQuality] = useState<number | null>(null);
+    const [imageHash, setImageHash] = useState<string | null>(null);
+    const [lastProcessedHash, setLastProcessedHash] = useState<string | null>(null);
+
+    function generateImageHash(data: Uint8ClampedArray): string {
+        let hash = 0;
+        for (let i = 0; i < data.length; i += 100) {
+            hash = (hash << 5) - hash + data[i];
+            hash = hash & hash;
+        }
+        return hash.toString();
+    }
 
     function handleDownload() {
         const canvas = processedCanvasRef.current;
@@ -42,7 +54,12 @@ export default function ImageProcessor() {
                 const ctx = canvas.getContext("2d");
                 if (ctx) {
                     ctx.drawImage(img, 0, 0);
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    setImageHash(generateImageHash(imageData.data));
                     setImageUploaded(true);
+                    setImageProcessed(false);
+                    setLastProcessedHash(null);
+                    setLastQuality(null);
                 }
             };
             if (event.target && typeof event.target.result === "string") {
@@ -60,39 +77,30 @@ export default function ImageProcessor() {
         }
 
         setImageProcessed(false);
-        await new Promise((resolve) => setTimeout(resolve, 0));
         setIsProcessing(true);
+        await new Promise((resolve) => setTimeout(resolve, 10));
 
         const canvas = originalCanvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        try {
-            await init("/compress_jpeg_bg.wasm");
-        } catch {
-            try {
-                await init("./compress_jpeg_bg.wasm");
-            } catch {
-                await init();
-            }
-        }
+        await init();
 
         try {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const rustImageData = new RustImageData(
+                new Uint8ClampedArray(imageData.data),
                 imageData.width,
-                imageData.height,
-                new Uint8ClampedArray(imageData.data)
+                imageData.height
             );
 
-            const processedData = compress_jpeg(rustImageData, quality);
+            const processedData = await compress_jpeg(rustImageData, quality);
 
             const browserImageData = new ImageData(
-                processedData.data(),
+                new Uint8ClampedArray(processedData.data()),
                 processedData.width(),
-                processedData.height(),
-                { colorSpace: "srgb" }
+                processedData.height()
             );
 
             processedData.free();
@@ -105,6 +113,9 @@ export default function ImageProcessor() {
             if (outCtx) {
                 outCtx.putImageData(browserImageData, 0, 0);
             }
+
+            setLastQuality(quality);
+            setLastProcessedHash(imageHash);
         } catch (err) {
             console.error("Error processing image:", err);
         } finally {
@@ -112,6 +123,9 @@ export default function ImageProcessor() {
             setImageProcessed(true);
         }
     }
+
+    const isGenerateDisabled =
+        !imageUploaded || isProcessing || (quality === lastQuality && imageHash === lastProcessedHash);
 
     return (
         <>
@@ -141,29 +155,15 @@ export default function ImageProcessor() {
 
             {/* Processing / Generate Section */}
             <section className="mb-6">
-                {/* {isProcessing ? (
-                    <div
-                        id="progress"
-                        className="box-border h-8 w-full appearance-none overflow-hidden rounded-none border-none bg-[#c0c0c0] p-1 shadow-[inset_-1px_-1px_#ffffff,_inset_1px_1px_#808080,_inset_-2px_-2px_#dfdfdf,_inset_2px_2px_#0a0a0a]"
-                    >
-                        <div
-                            className="h-full bg-[#000080]"
-                            style={{
-                                width: `${Math.round(progress / 5) * 5}%`,
-                            }}
-                        />
-                    </div>
-                ) : ( */}
                 <button
                     type="button"
-                    disabled={!imageUploaded}
+                    disabled={isGenerateDisabled && !isProcessing}
                     onClick={handleGenerate}
                     className="w-full px-6 py-2 sm:w-auto"
-                    aria-disabled={!imageUploaded}
+                    aria-disabled={isGenerateDisabled}
                 >
                     {isProcessing ? "Generating Image..." : "Generate Image"}
                 </button>
-                {/* )} */}
                 <small className="m-2 block text-xs">All processing is done client-side.</small>
             </section>
 
