@@ -3,9 +3,9 @@
 import { ChangeEvent, useRef } from "react";
 
 export default function FileInput({
-    onChange,
+    onChangeAction,
 }: {
-    onChange: (event: ChangeEvent<HTMLInputElement>) => void; // eslint-disable-line no-unused-vars
+    onChangeAction: (event: ChangeEvent<HTMLInputElement>) => void; // eslint-disable-line no-unused-vars
 }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -19,7 +19,7 @@ export default function FileInput({
                 id="fileInput"
                 type="file"
                 accept="image/*"
-                onChange={onChange}
+                onChange={onChangeAction}
                 className="file:hidden"
             />
         </div>

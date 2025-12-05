@@ -8,7 +8,7 @@ export default function Home() {
             </div>
             <div className="mx-auto max-w-6xl p-5">
                 <ImageProcessor />
-                <small className="mt-4 block text-xs">
+                <small className="mt-4 block text-sm">
                     This project is open source under the MIT License.{" "}
                     <a
                         href="https://github.com/ganemedelabs/jpeg-artifacts-simulator"

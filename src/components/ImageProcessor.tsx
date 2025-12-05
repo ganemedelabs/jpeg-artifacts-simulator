@@ -1,6 +1,6 @@
 "use client";
 
-import init, { ImageData as RustImageData, compress_jpeg } from "compress-jpeg";
+import init, { compress_jpeg } from "compress-jpeg";
 import NextImage from "next/image";
 import { ChangeEvent, useRef, useState } from "react";
 import FileInput from "./FileInput";
@@ -9,12 +9,15 @@ import TitleBar from "./TitleBar";
 export default function ImageProcessor() {
     const originalCanvasRef = useRef<HTMLCanvasElement>(null);
     const processedCanvasRef = useRef<HTMLCanvasElement>(null);
-    const [quality, setQuality] = useState<number>(30);
+
+    const [compression, setCompression] = useState<number>(30);
+
     const [imageUploaded, setImageUploaded] = useState(false);
     const [imageProcessed, setImageProcessed] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [fileName, setFileName] = useState<string | null>(null);
-    const [lastQuality, setLastQuality] = useState<number | null>(null);
+
+    const [lastCompression, setLastCompression] = useState<number | null>(null);
     const [imageHash, setImageHash] = useState<string | null>(null);
     const [lastProcessedHash, setLastProcessedHash] = useState<string | null>(null);
 
@@ -49,23 +52,28 @@ export default function ImageProcessor() {
             img.onload = () => {
                 const canvas = originalCanvasRef.current;
                 if (!canvas) return;
+
                 canvas.width = img.width;
                 canvas.height = img.height;
+
                 const ctx = canvas.getContext("2d");
                 if (ctx) {
                     ctx.drawImage(img, 0, 0);
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
                     setImageHash(generateImageHash(imageData.data));
                     setImageUploaded(true);
                     setImageProcessed(false);
                     setLastProcessedHash(null);
-                    setLastQuality(null);
+                    setLastCompression(null);
                 }
             };
+
             if (event.target && typeof event.target.result === "string") {
                 img.src = event.target.result;
             }
         };
+
         reader.readAsDataURL(file);
     }
 
@@ -82,6 +90,7 @@ export default function ImageProcessor() {
 
         const canvas = originalCanvasRef.current;
         if (!canvas) return;
+
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
@@ -89,32 +98,19 @@ export default function ImageProcessor() {
 
         try {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const rustImageData = new RustImageData(
-                new Uint8ClampedArray(imageData.data),
-                imageData.width,
-                imageData.height
-            );
 
-            const processedData = await compress_jpeg(rustImageData, quality);
-
-            const browserImageData = new ImageData(
-                new Uint8ClampedArray(processedData.data()),
-                processedData.width(),
-                processedData.height()
-            );
-
-            processedData.free();
+            const output = compress_jpeg(imageData, compression / 100);
 
             const outCanvas = processedCanvasRef.current;
             if (!outCanvas) return;
+
             outCanvas.width = canvas.width;
             outCanvas.height = canvas.height;
-            const outCtx = outCanvas.getContext("2d");
-            if (outCtx) {
-                outCtx.putImageData(browserImageData, 0, 0);
-            }
 
-            setLastQuality(quality);
+            const outCtx = outCanvas.getContext("2d");
+            if (outCtx) outCtx.putImageData(output, 0, 0);
+
+            setLastCompression(compression);
             setLastProcessedHash(imageHash);
         } catch (err) {
             console.error("Error processing image:", err);
@@ -125,7 +121,7 @@ export default function ImageProcessor() {
     }
 
     const isGenerateDisabled =
-        !imageUploaded || isProcessing || (quality === lastQuality && imageHash === lastProcessedHash);
+        !imageUploaded || isProcessing || (compression === lastCompression && imageHash === lastProcessedHash);
 
     return (
         <>
@@ -134,26 +130,28 @@ export default function ImageProcessor() {
                 <label htmlFor="fileInput" className="mb-2 block text-sm">
                     Import Image:
                 </label>
-                <FileInput onChange={handleImageUpload} />
+                <FileInput onChangeAction={handleImageUpload} />
             </section>
 
-            {/* Quality Slider Section */}
+            {/* Compression Slider Section */}
             <section className="mb-6">
-                <label htmlFor="qualityRange" className="mb-2 block text-sm">
-                    Quality (lower = more artifacts): {quality}
+                <label htmlFor="compressionRange" className="mb-2 block text-sm">
+                    Compression Strength (0 = none, 100 = maximum): {compression.toFixed()}
                 </label>
+
                 <input
-                    id="qualityRange"
+                    id="compressionRange"
                     type="range"
-                    min="1"
+                    min="0"
                     max="100"
-                    value={quality}
-                    onChange={(e) => setQuality(Number(e.target.value))}
+                    step="1"
+                    value={compression}
+                    onChange={(e) => setCompression(Number(e.target.value))}
                     className="h-2 w-full cursor-pointer appearance-none"
                 />
             </section>
 
-            {/* Processing / Generate Section */}
+            {/* Processing Section */}
             <section className="mb-6">
                 <button
                     type="button"
@@ -164,10 +162,10 @@ export default function ImageProcessor() {
                 >
                     {isProcessing ? "Generating Image..." : "Generate Image"}
                 </button>
-                <small className="m-2 block text-xs">All processing is done client-side.</small>
+                <small className="m-2 block text-sm">All processing is done client-side.</small>
             </section>
 
-            {/* Display Canvases Section */}
+            {/* Display Canvases */}
             <section className="grid gap-8 md:grid-cols-2">
                 {/* Original Image */}
                 <div className="window">
@@ -182,7 +180,7 @@ export default function ImageProcessor() {
 
                     {!imageUploaded && (
                         <div className="flex h-48 w-full items-center justify-center">
-                            <NextImage src="/images/original.png" alt="Processed Icon" width={120} height={120} />
+                            <NextImage src="/images/original.png" alt="Original Icon" width={120} height={120} />
                         </div>
                     )}
                 </div>
