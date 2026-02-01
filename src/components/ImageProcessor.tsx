@@ -209,7 +209,7 @@ export default function ImageProcessor() {
 
                     {imageProcessed && !error.length ? (
                         <div>
-                            <button type="button" className="w-full px-4 py-2" onClick={handleDownload}>
+                            <button type="button" className="w-full px-4! py-2!" onClick={handleDownload}>
                                 Download Image
                             </button>
                         </div>
