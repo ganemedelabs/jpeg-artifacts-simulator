@@ -2,12 +2,9 @@
 
 import type { NextConfig } from "next";
 
-const config = {
+const nextConfig: NextConfig = {
+    reactCompiler: true,
     reactStrictMode: true,
-    webpack(config) {
-        config.infrastructureLogging = { level: "verbose" };
-        return config;
-    },
     headers: async () => [
         {
             source: "/(.*)",
@@ -44,6 +41,6 @@ const config = {
             ],
         },
     ],
-} satisfies NextConfig;
+};
 
-export default config;
+export default nextConfig;

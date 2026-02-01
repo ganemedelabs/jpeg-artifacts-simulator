@@ -11,7 +11,11 @@ export default function FileInput({
 
     return (
         <div className="flex items-center">
-            <button type="button" className="mr-4 block w-fit px-4 py-2" onClick={() => fileInputRef.current?.click()}>
+            <button
+                type="button"
+                className="mr-4 block w-fit px-4! py-2!"
+                onClick={() => fileInputRef.current?.click()}
+            >
                 Choose File
             </button>
             <input

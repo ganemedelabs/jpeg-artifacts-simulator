@@ -1,7 +1,7 @@
 export default function TitleBar({ title }: { title: string }) {
     return (
         <div className="title-bar">
-            <h2 className="title-bar-text text-sm font-light">{title}</h2>
+            <h2 className="title-bar-text text-sm! font-light">{title}</h2>
             <div className="title-bar-controls">
                 {/* Decorative buttons */}
                 <button type="button" aria-label="Minimize" tabIndex={-1} />

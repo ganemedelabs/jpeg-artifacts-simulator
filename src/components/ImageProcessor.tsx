@@ -15,6 +15,7 @@ export default function ImageProcessor() {
     const [imageUploaded, setImageUploaded] = useState(false);
     const [imageProcessed, setImageProcessed] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState("");
     const [fileName, setFileName] = useState<string | null>(null);
 
     const [lastCompression, setLastCompression] = useState<number | null>(null);
@@ -32,7 +33,7 @@ export default function ImageProcessor() {
 
     function handleDownload() {
         const canvas = processedCanvasRef.current;
-        if (!canvas || !imageProcessed) return;
+        if (!canvas || !imageProcessed || error.length) return;
 
         const link = document.createElement("a");
         link.href = canvas.toDataURL("image/jpeg");
@@ -64,6 +65,7 @@ export default function ImageProcessor() {
                     setImageHash(generateImageHash(imageData.data));
                     setImageUploaded(true);
                     setImageProcessed(false);
+                    setError("");
                     setLastProcessedHash(null);
                     setLastCompression(null);
                 }
@@ -85,6 +87,7 @@ export default function ImageProcessor() {
         }
 
         setImageProcessed(false);
+        setError("");
         setIsProcessing(true);
         await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -94,11 +97,9 @@ export default function ImageProcessor() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        await init();
-
         try {
+            await init();
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
             const output = compress_jpeg(imageData, compression / 100);
 
             const outCanvas = processedCanvasRef.current;
@@ -112,11 +113,12 @@ export default function ImageProcessor() {
 
             setLastCompression(compression);
             setLastProcessedHash(imageHash);
+            setImageProcessed(true);
         } catch (err) {
             console.error("Error processing image:", err);
+            setError(`Processing failed: ${err instanceof Error ? err.message : String(err)}`);
         } finally {
             setIsProcessing(false);
-            setImageProcessed(true);
         }
     }
 
@@ -127,7 +129,7 @@ export default function ImageProcessor() {
         <>
             {/* Image Import Section */}
             <section className="mb-6">
-                <label htmlFor="fileInput" className="mb-2 block text-sm">
+                <label htmlFor="fileInput" className="mb-2 block text-sm!">
                     Import Image:
                 </label>
                 <FileInput onChangeAction={handleImageUpload} />
@@ -135,7 +137,7 @@ export default function ImageProcessor() {
 
             {/* Compression Slider Section */}
             <section className="mb-6">
-                <label htmlFor="compressionRange" className="mb-2 block text-sm">
+                <label htmlFor="compressionRange" className="mb-2 block text-sm!">
                     Compression Strength (0 = none, 100 = maximum): {compression.toFixed()}
                 </label>
 
@@ -157,7 +159,7 @@ export default function ImageProcessor() {
                     type="button"
                     disabled={isGenerateDisabled && !isProcessing}
                     onClick={handleGenerate}
-                    className="w-full px-6 py-2 sm:w-auto"
+                    className="w-full px-6! py-2! sm:w-auto!"
                     aria-disabled={isGenerateDisabled}
                 >
                     {isProcessing ? "Generating Image..." : "Generate Image"}
@@ -180,7 +182,16 @@ export default function ImageProcessor() {
 
                     {!imageUploaded && (
                         <div className="flex h-48 w-full items-center justify-center">
-                            <NextImage src="/images/original.png" alt="Original Icon" width={120} height={120} />
+                            <div className="flex flex-col items-center">
+                                <NextImage
+                                    className="[image-rendering:crisp-edges] [image-rendering:pixelated]"
+                                    src="/images/original.png"
+                                    alt="Original Icon"
+                                    width={48}
+                                    height={48}
+                                />
+                                <p className="mt-2 text-sm!">No image uploaded.</p>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -191,20 +202,42 @@ export default function ImageProcessor() {
 
                     <canvas
                         ref={processedCanvasRef}
-                        className={`h-auto w-full max-w-full ${imageProcessed ? "" : "hidden"}`}
+                        className={`h-auto w-full max-w-full ${imageProcessed && !error.length ? "" : "hidden"}`}
                         role="img"
                         aria-label="Processed image"
                     />
 
-                    {imageProcessed ? (
+                    {imageProcessed && !error.length ? (
                         <div>
                             <button type="button" className="w-full px-4 py-2" onClick={handleDownload}>
                                 Download Image
                             </button>
                         </div>
                     ) : (
-                        <div className="flex h-48 w-full items-center justify-center">
-                            <NextImage src="/images/processed.png" alt="Processed Icon" width={120} height={120} />
+                        <div className="flex h-48 w-full flex-col items-center justify-center">
+                            {error.length ? (
+                                <div className="flex flex-col items-center">
+                                    <NextImage
+                                        className="[image-rendering:crisp-edges] [image-rendering:pixelated]"
+                                        src="/images/error.png"
+                                        alt="Error Icon"
+                                        width={48}
+                                        height={48}
+                                    />
+                                    <p className="mt-2 text-sm!">{error}</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center">
+                                    <NextImage
+                                        className="[image-rendering:crisp-edges] [image-rendering:pixelated]"
+                                        src="/images/processed.png"
+                                        alt="Processed Icon"
+                                        width={48}
+                                        height={48}
+                                    />
+                                    <p className="mt-2 text-sm!">No processed image to display.</p>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

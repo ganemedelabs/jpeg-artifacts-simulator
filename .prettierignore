@@ -8,6 +8,10 @@ coverage/
 
 # production
 build/
+dist/
 
 # development
 dev-dist/
+
+# misc
+package-lock.json
