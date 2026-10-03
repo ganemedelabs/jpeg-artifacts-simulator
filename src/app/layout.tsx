@@ -24,7 +24,7 @@ export const metadata: Metadata = {
         url: APP_URL,
         images: [
             {
-                url: "images/og-image.png",
+                url: "/images/og-image.png",
                 width: 1200,
                 height: 630,
                 alt: "JPEG Artifacts Simulator Preview",
