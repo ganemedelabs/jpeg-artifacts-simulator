@@ -82,11 +82,11 @@ body:
               Provide details about your environment:
               - Operating System (e.g., Windows 10, macOS Monterey)
               - Browser and Version (if applicable)
-              - Version of CiteEase (if applicable)
+              - Version of JPEG Artifacts Simulator (if applicable)
           placeholder: |
               Operating System: macOS Monterey
               Browser: Chrome 103.0.5060.53
-              Version of CiteEase: 2.3.1
+              Version of JPEG Artifacts Simulator: 2.3.1
 
     - type: textarea
       id: additional_information
